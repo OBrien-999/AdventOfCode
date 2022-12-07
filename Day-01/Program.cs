@@ -1,5 +1,6 @@
 ﻿var sum = 0;
-var maxSum = 0;
+var numOfSums = args.Count() > 0 ? Int32.Parse(args[0]) : 1;
+var sortedSums = new SortedSet<Int32>();
 
 foreach(string line in System.IO.File.ReadLines(@"./day-01-input.txt"))
 {
@@ -9,13 +10,11 @@ foreach(string line in System.IO.File.ReadLines(@"./day-01-input.txt"))
         continue;
     }
 
-    if(sum > maxSum)
-        maxSum = sum;
+    sortedSums.Add(sum);
 
     sum = 0;
 }
 
-if(sum > maxSum)
-   maxSum = sum;
+sortedSums.Add(sum);
 
-Console.WriteLine(maxSum);
+Console.WriteLine(sortedSums.Reverse().Take(numOfSums).Sum());
