@@ -1,34 +1,31 @@
 ﻿var totalScore = 0;
 var sortedSums = new SortedSet<Int32>();
 
-var myWinMap = new Dictionary<string, string>()
+var winMap = new Dictionary<string, string>()
 {
-    {MyMove.Rock, OpponentMove.Scissors},
-    {MyMove.Paper, OpponentMove.Rock},
-    {MyMove.Scissors, OpponentMove.Paper}
+    {Move.Rock, Move.Paper},
+    {Move.Paper, Move.Scissors},
+    {Move.Scissors, Move.Rock},
 };
 
-var drawMap = new Dictionary<string, int>()
+var loseMap = new Dictionary<string, string>()
 {
-    {MyMove.Rock, 0},
-    {MyMove.Paper, 1},
-    {MyMove.Scissors, 2},
-    {OpponentMove.Rock, 0},
-    {OpponentMove.Paper, 1},
-    {OpponentMove.Scissors, 2}
+    {Move.Paper, Move.Rock},
+    {Move.Scissors, Move.Paper},
+    {Move.Rock, Move.Scissors},
 };
 
 foreach(string line in System.IO.File.ReadLines(@"./day-02-input.txt"))
 {
     var round = line.Split(" ");
     var opponentMove = round[0];
-    var myMove = round[1];
-    
+    var strategy = round[1];
+    var myMove = getMyMoveForStrategy(strategy, opponentMove);
+
     var pointsForMyShape = getScoreForSelectedShape(myMove);
-    var pointsForMove = getScoreForMove(opponentMove, myMove);
+    var pointsForMove = getScoreForMove(strategy);
 
     totalScore += (pointsForMyShape + pointsForMove);
-    //Console.WriteLine($"{opponentMove} {myMove} {pointsForMyShape} {pointsForMove} {totalScore}");
 }
 
 Console.WriteLine(totalScore);
@@ -38,36 +35,47 @@ int getScoreForSelectedShape(string selectedShape)
 {
     switch(selectedShape)
     {
-        case MyMove.Rock:
+        case Move.Rock:
             return 1;
-        case MyMove.Paper:
+        case Move.Paper:
             return 2;
-        case MyMove.Scissors:
+        case Move.Scissors:
             return 3;
         default:
             throw new NotSupportedException(selectedShape);
     }
 }
 
-int getScoreForMove(string opponentMove, string myMove)
+int getScoreForMove(string strategy)
 {
-    if(drawMap[myMove] == drawMap[opponentMove])
+    if(strategy == RoundResult.Draw)
         return 3;
 
-    if(myWinMap[myMove] == opponentMove)
+    if(strategy == RoundResult.Win)
         return 6;
 
     return 0;
 }
 
-record MyMove() 
+string getMyMoveForStrategy(string strategy, string opponentMove)
 {
-    public const string Rock = "X";
-    public const string Paper = "Y";
-    public const string Scissors = "Z";
+    if(strategy == RoundResult.Draw)
+        return opponentMove;
+
+    if(strategy == RoundResult.Win)
+        return winMap[opponentMove];
+
+    return loseMap[opponentMove];
+}
+
+record RoundResult() 
+{
+    public const string Lose = "X";
+    public const string Draw = "Y";
+    public const string Win = "Z";
 };
 
-record OpponentMove() 
+record Move() 
 {
     public const string Rock = "A";
     public const string Paper = "B";
