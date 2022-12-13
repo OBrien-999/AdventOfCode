@@ -1,24 +1,38 @@
-﻿var prioritiesSum = 0;
+﻿var numberOfLines = args.Count() > 0 ? Int32.Parse(args[0]) : 1;
 
+var prioritiesSum = 0;
+
+var currentNumberOfLines = 0;
+IEnumerable<char> duplicate = new char[]{};
 foreach(string pack in System.IO.File.ReadLines(@"./day-03-input.txt"))
 {
-    var startOfSecondCompartment = pack.Length / 2;
-    var compartmentOne = pack.Substring(0, pack.Length / 2);
-    var compartmentTwo = pack.Substring(startOfSecondCompartment);
-
-    var compartmentItems = new HashSet<char>();
-    foreach (char item in compartmentOne)
-        compartmentItems.Add(item);
-
-    foreach (char item in compartmentTwo)
+    if (numberOfLines == 1)
     {
-        if (compartmentItems.Contains(item)) {
-            var value = GetItemValue(item);
-            prioritiesSum += value;
-            break;
-        }
-
+        var startOfSecondCompartment = pack.Length / 2;
+        var compartmentOne = pack.Substring(0, pack.Length / 2);
+        var compartmentTwo = pack.Substring(startOfSecondCompartment);
+        duplicate = compartmentOne.Intersect(compartmentTwo);
+        prioritiesSum += GetItemValue(duplicate.First());
+        continue;
     }
+
+    if (currentNumberOfLines == numberOfLines)
+    {
+        prioritiesSum += GetItemValue(duplicate.First());
+        duplicate = new char[]{};
+        currentNumberOfLines = 0;
+    }
+    
+    duplicate = !duplicate.Any()
+        ? pack
+        : pack.Intersect(duplicate);
+    
+    currentNumberOfLines++;
+}
+
+if (numberOfLines > 1)
+{
+    prioritiesSum += GetItemValue(duplicate.First());
 }
 
 Console.WriteLine(prioritiesSum);
