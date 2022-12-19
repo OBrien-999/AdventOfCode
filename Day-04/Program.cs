@@ -13,13 +13,13 @@ foreach(string sectionPair in System.IO.File.ReadLines(@"./day-04-input.txt"))
     var startPairTwo = Int32.Parse(matches[0].Groups[3].Value);
     var endPairTwo = Int32.Parse(matches[0].Groups[4].Value);
 
-    if (startPairOne >= startPairTwo && startPairOne <= endPairTwo)
+    if (startPairOne >= startPairTwo && startPairOne <= endPairTwo) // start of first range is contained in the second range
         totalContainedPairs += 1;
-    else if (endPairOne >= startPairTwo && endPairOne <= endPairTwo)
+    else if (endPairOne >= startPairTwo && endPairOne <= endPairTwo) // end of first range is contained in the second range
         totalContainedPairs += 1;
-    else if (startPairOne < startPairTwo)
+    else if (startPairOne < startPairTwo) // second range might contain first range
         totalContainedPairs += DoesRangeContainOther(startPairOne, endPairOne, startPairTwo, endPairTwo) ? 1 : 0;
-    else if (startPairTwo < startPairOne)
+    else if (startPairTwo < startPairOne) // first range might contain second range
         totalContainedPairs += DoesRangeContainOther(startPairTwo, endPairTwo, startPairOne, endPairOne) ? 1 : 0;
     else
         totalContainedPairs += 1;
