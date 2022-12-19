@@ -39,7 +39,9 @@ void RearrangeSupplies(string input, Supplies supplies)
 
 void InitiateSupplies(string input, Supplies supplies)
 {
-    string pattern = @"\[(.)\]|\s?(\s{3})\s?";
+    string fullCrate = @"\[(.)\]";
+    string missingCrate = @"\s?(\s{3})\s?";
+    string pattern = $"{fullCrate}|{missingCrate}";
     MatchCollection matches = Regex.Matches(input, pattern);
     foreach (var match in matches.Select((data, index) => (data, index)))
     {
