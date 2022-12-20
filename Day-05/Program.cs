@@ -1,8 +1,10 @@
 ﻿using System.Text.RegularExpressions;
 
+var moveMultipleCratesAtATime = args.Count() > 0 ?  true : false;
+
 var processingRearrangements = false;
 
-var supplies = new Supplies();
+var supplies = new Supplies(moveMultipleCratesAtATime);
 
 foreach(string input in System.IO.File.ReadLines(@"./day-05-input.txt"))
 {
@@ -31,10 +33,8 @@ void RearrangeSupplies(string input, Supplies supplies)
     var sourceStackNumber = Int32.Parse(matches[0].Groups[2].Value);
     var destinationStackNumber = Int32.Parse(matches[0].Groups[3].Value);
 
-    foreach (var _ in Enumerable.Range(0, numberOfCratesToMove))
-    {
-        supplies.AddTop(destinationStackNumber, supplies.RemoveTop(sourceStackNumber));
-    }
+    supplies.AddTop(numberOfCratesToMove, sourceStackNumber, destinationStackNumber);
+    
 }
 
 void InitiateSupplies(string input, Supplies supplies)
@@ -69,10 +69,12 @@ public class Supplies
 {
 
     private readonly Dictionary<int, LinkedList<string>> crateStacks;
+    private readonly bool _moveMultipleCratesAtATime;
 
-    public Supplies()
+    public Supplies(bool moveMultipleCratesAtATime)
     {
         crateStacks = new Dictionary<int, LinkedList<string>>();
+        _moveMultipleCratesAtATime = moveMultipleCratesAtATime;
     }
     
     public void AddBottom(int destinationStack, string crate)
@@ -87,29 +89,23 @@ public class Supplies
         crateStacks.Add(destinationStack, newStack);
     }
 
-    
-    public void AddTop(int destinationStack, string crate)
+    public void AddTop(int count, int sourceStackNumber, int destinationStackNumber)
     {
-        if (crateStacks.TryGetValue(destinationStack, out var stack)) {
-            stack.AddLast(crate);
-            return;
-        }
-        
-        var newStack = new LinkedList<string>();
-        newStack.AddLast(crate);
-        crateStacks.Add(destinationStack, newStack);
-    }
-
-
-    public string? RemoveTop(int sourceStackNumber)
-    {
-        if (crateStacks.TryGetValue(sourceStackNumber, out var stack)) {
-            var topCrate = GetTopCrateForStack(sourceStackNumber);
-            stack.RemoveLast();
-            return topCrate;
+        var sourceStack = crateStacks.GetValueOrDefault(sourceStackNumber);
+        var cratesToMove = sourceStack?.TakeLast(count);
+        if (!crateStacks.TryGetValue(destinationStackNumber, out var destinationStack)) {
+            destinationStack = new LinkedList<string>();
+            crateStacks.Add(destinationStackNumber, destinationStack);
         }
 
-        return null;
+        if (!_moveMultipleCratesAtATime)
+            cratesToMove = cratesToMove.Reverse();
+
+        foreach (string crateToMove in cratesToMove)
+            destinationStack.AddLast(crateToMove);
+
+        foreach (var _ in Enumerable.Range(0, count))
+            sourceStack.RemoveLast();
     }
 
     public string GetTopCrateForStack(int stackNumber)
