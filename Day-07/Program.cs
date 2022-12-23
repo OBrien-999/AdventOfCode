@@ -2,7 +2,31 @@
 using System.Linq;
 
 FileSystem fileSystem = new FileSystem(System.IO.File.ReadAllText(@"./day-07-input.txt"));
-Console.WriteLine(fileSystem.FindDirectories());
+
+var directorySizes = fileSystem.GetDirectorySizes();
+// var sumOfDirsLessThanThreshold = 
+//     directorySizes
+        // .Where( x => x.Value <= 100000)
+        // .Select(x => x.Value)
+        // .Sum();
+
+const string RootDirectory = "/";
+const int TotalAvailableDiskSpace = 70000000;
+const int MinimumUnusedSpaceRequirement = 30000000;
+
+var usedDiskSpace = directorySizes.GetValueOrDefault(RootDirectory);
+
+var currentAvailableDiskSpace = TotalAvailableDiskSpace - usedDiskSpace;
+
+var smallestDirToDelete = 
+    directorySizes
+        .Where(x => (currentAvailableDiskSpace + x.Value) >= MinimumUnusedSpaceRequirement)
+        .OrderBy(x => x.Value)
+        .FirstOrDefault();
+
+
+Console.WriteLine(smallestDirToDelete.Value);
+
 
 public class FileSystem
 {
@@ -45,16 +69,28 @@ public class FileSystem
     {
         root = ParseInput(input);
     }
-    public int FindDirectories()
+
+    public Dictionary<string, int> GetDirectorySizes()
     {
-        int totalSum = 0;
+        var directorySizes = new Dictionary<string, int>();
+        var rootDirectorySize = 0;
+
+        foreach (var file in root.Files)
+        {
+            rootDirectorySize += file.Size;
+        }
+
         foreach (var directory in root.Directories)
         {
-            ComputeTotalSize(directory, ref totalSum);
+            rootDirectorySize += GetDirectorySize(directory, directorySizes);
         }
-        return totalSum;
+
+        directorySizes.Add("/", rootDirectorySize);
+        
+        return directorySizes;
     }
-    private int ComputeTotalSize(Directory directory, ref int totalSum)
+
+    private int GetDirectorySize(Directory directory, Dictionary<string, int> dictionarySizes)
     {
         int dirSize = 0;
         foreach (var file in directory.Files)
@@ -64,15 +100,16 @@ public class FileSystem
 
         foreach (var subdirectory in directory.Directories)
         {
-            var subDirSize = ComputeTotalSize(subdirectory, ref totalSum);
+            var subDirSize = GetDirectorySize(subdirectory, dictionarySizes);
             dirSize += subDirSize;
         }
 
-        if(dirSize <= 100000)
-            totalSum += dirSize;
+        if (!dictionarySizes.TryGetValue(directory.Name, out var _))
+            dictionarySizes.Add(directory.Name, dirSize);
 
         return dirSize;
     }
+
     private Directory ParseInput(string input)
     {
         var lines = input.Split("\n");
