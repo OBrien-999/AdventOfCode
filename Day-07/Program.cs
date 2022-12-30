@@ -4,28 +4,29 @@ using System.Linq;
 FileSystem fileSystem = new FileSystem(System.IO.File.ReadAllText(@"./day-07-input.txt"));
 
 var directorySizes = fileSystem.GetDirectorySizes();
-// var sumOfDirsLessThanThreshold = 
-//     directorySizes
-        // .Where( x => x.Value <= 100000)
-        // .Select(x => x.Value)
-        // .Sum();
+var sumOfDirsLessThanThreshold = 
+    directorySizes
+        .Where( x => x.Value <= 100000)
+        .Select(x => x.Value)
+        .Sum();
 
 const string RootDirectory = "/";
 const int TotalAvailableDiskSpace = 70000000;
 const int MinimumUnusedSpaceRequirement = 30000000;
 
 var usedDiskSpace = directorySizes.GetValueOrDefault(RootDirectory);
-
 var currentAvailableDiskSpace = TotalAvailableDiskSpace - usedDiskSpace;
 
+var spaceToSetFree = MinimumUnusedSpaceRequirement - currentAvailableDiskSpace;
 var smallestDirToDelete = 
     directorySizes
-        .Where(x => (currentAvailableDiskSpace + x.Value) >= MinimumUnusedSpaceRequirement)
+        .Where(x => (x.Value) >= spaceToSetFree)
         .OrderBy(x => x.Value)
         .FirstOrDefault();
 
 
-Console.WriteLine(smallestDirToDelete.Value);
+Console.WriteLine($"Part 1: {sumOfDirsLessThanThreshold}");
+Console.WriteLine($"Part 2: {smallestDirToDelete.Value}");
 
 
 public class FileSystem
@@ -49,9 +50,9 @@ public class FileSystem
         {
             Files.Add(file);
         }
-        public Directory GetDirectory(string name)
+        public Directory? GetDirectory(string name)
         {
-            return Directories.FirstOrDefault(d => d.Name == name);
+            return Directories?.FirstOrDefault(d => d.Name == name);
         }
     }
     private class File
@@ -93,6 +94,8 @@ public class FileSystem
     private int GetDirectorySize(Directory directory, Dictionary<string, int> dictionarySizes)
     {
         int dirSize = 0;
+        Random rand = new Random();
+
         foreach (var file in directory.Files)
         {
             dirSize += file.Size;
@@ -104,7 +107,9 @@ public class FileSystem
             dirSize += subDirSize;
         }
 
-        if (!dictionarySizes.TryGetValue(directory.Name, out var _))
+        if (dictionarySizes.TryGetValue(directory.Name, out var existingDirectory))
+            dictionarySizes.Add(directory.Name + Guid.NewGuid().ToString(), dirSize);
+        else
             dictionarySizes.Add(directory.Name, dirSize);
 
         return dirSize;
