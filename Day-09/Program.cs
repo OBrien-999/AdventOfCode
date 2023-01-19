@@ -3,15 +3,17 @@ using System.Text.RegularExpressions;
 
 TestMoveHeadOneStep();
 TestParseInputMotion();
-//TestSampleInput();
+TestSampleInput();
+
+Console.WriteLine(CalculateNumberOfPositions(System.IO.File.ReadAllLines(@"./day-09-input.txt")));
 
 void TestMoveHeadOneStep()
 {
-    var head = new Knot(5, 2);
+    var head = new Head(5, 2);
     int expectedX= 5;
     int expectedY = 1;
 
-     MoveHeadOneStep(Direction.Down, head);
+     head.Move(Direction.Down);
 
     Assert.AreEqual(expectedX, head.X);
     Assert.AreEqual(expectedY, head.Y);
@@ -41,15 +43,9 @@ void TestSampleInput()
 
 int CalculateNumberOfPositions(string[] motions)
 {
-    // Problem summary:
-    // Process each motion in the input
-        // First motion (R4 - Right 4 positions): 
-        // Move head 1 step at a time until the motion is complete
-        // After each step check the distance from the tail if distance is greater than 1
-        // Move the tail 
 
-    Knot tail = new();
-    Knot head = new();
+    Head head = new();
+    Tail tail = new(head);
 
     foreach(var motion in motions)
     {
@@ -57,41 +53,12 @@ int CalculateNumberOfPositions(string[] motions)
 
         foreach(var step in Enumerable.Range(0, distance))
         {
-            
+            head.Move(direction);
+            tail.Move();
         }
     }
 
-    // Solution summary:
-    // Keep the coordinates in a knot class for the head and tail
-    // Use coordinate mathematics to calculate the distance between the head and tail
-    // Everytime we move the tail to a coordinate we'll add that to a hashset
-    // Return the count of the hashset
-
-    return 0;
-}
-
-void MoveHeadOneStep(string direction, Knot head)
-{
-    switch(direction)
-    {
-        case Direction.Up:
-            ++head.Y;
-            break;
-        case Direction.Down:
-            --head.Y;
-            break;
-        case Direction.Left:
-            --head.X;
-            break;
-        case Direction.Right:
-            ++head.X;
-            break;
-    }
-}
-
-void MoveTailRelativeToHead(string direction, Knot tail)
-{
-    
+    return tail.VisitedPoints.Count();
 }
 
 (string direction, int distance) ParseMotion(string inputMotion)
@@ -107,13 +74,76 @@ void MoveTailRelativeToHead(string direction, Knot tail)
 
 public record class Knot 
 {
-    public int X;
-    public int Y;
+    protected int _x;
+    public int X { get { return _x; } }
+    protected int _y;
+    public int Y { get { return _y; } }
 
     public Knot(int x = 0, int y = 0)
     {
-        X = x;
-        Y = y;
+        _x = x;
+        _y = y;
+    }
+}
+
+public record class Head : Knot
+{
+    private int _prevX = 0;
+    public int PrevX { get { return _prevX; } }
+    private int _prevY = 0;
+    public int PrevY { get { return _prevY; } }
+
+    public Head(int x = 0, int y = 0) : base(x, y) {}
+
+    public void Move(string direction)
+    {
+        _prevX = X;
+        _prevY = Y;
+
+         switch(direction)
+        {
+            case Direction.Up:
+                ++_y;
+                break;
+            case Direction.Down:
+                --_y;
+                break;
+            case Direction.Left:
+                --_x;
+                break;
+            case Direction.Right:
+                ++_x;
+                break;
+        }
+    }
+}
+
+public record class Tail : Knot
+{
+    private readonly Head _head;
+
+    public readonly HashSet<string> VisitedPoints;
+    
+    public Tail(Head head, int x = 0, int y = 0) : base(x, y)
+    {
+        _head = head;
+        VisitedPoints = new HashSet<string>()
+        {
+            "0, 0"
+        };
+    }
+
+    public void Move()
+    {
+        double distance = Math.Sqrt(Math.Pow(_head.X - X, 2) + Math.Pow(_head.Y - Y, 2));
+
+        if (distance > Math.Sqrt(2))
+        {
+            _x = _head.PrevX;
+            _y = _head.PrevY;
+
+            VisitedPoints.Add($"{X}, {Y}");
+        }
     }
 }
 
