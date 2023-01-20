@@ -43,7 +43,6 @@ void TestSampleInput()
 
 int CalculateNumberOfPositions(string[] motions)
 {
-
     Head head = new();
     Tail tail = new(head);
 
@@ -79,6 +78,11 @@ public record class Knot
     protected int _y;
     public int Y { get { return _y; } }
 
+    protected int _prevX = 0;
+    public int PrevX { get { return _prevX; } }
+    protected int _prevY = 0;
+    public int PrevY { get { return _prevY; } }
+
     public Knot(int x = 0, int y = 0)
     {
         _x = x;
@@ -86,13 +90,9 @@ public record class Knot
     }
 }
 
+
 public record class Head : Knot
 {
-    private int _prevX = 0;
-    public int PrevX { get { return _prevX; } }
-    private int _prevY = 0;
-    public int PrevY { get { return _prevY; } }
-
     public Head(int x = 0, int y = 0) : base(x, y) {}
 
     public void Move(string direction)
@@ -120,7 +120,7 @@ public record class Head : Knot
 
 public record class Tail : Knot
 {
-    private readonly Head _head;
+    private readonly Knot _head;
 
     public readonly HashSet<string> VisitedPoints;
     
