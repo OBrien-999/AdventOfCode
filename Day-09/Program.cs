@@ -183,47 +183,49 @@ public record class Tail : Knot
     public void Move()
     {
         double distance = Math.Sqrt(Math.Pow(_head.X - X, 2) + Math.Pow(_head.Y - Y, 2));
+        
         var isAdjacent = distance <= Math.Sqrt(2);
-        if (!isAdjacent)
-        {
-            _prevX = X;
-            _prevY = Y;
+        
+        if (isAdjacent)
+            return;
+        
+        MoveTowardsHead();
+    }
 
-            var onSameColumn = _x == _head.X;
-            var onSameRow = _y == _head.Y;
+    private void MoveTowardsHead()
+    {
+        _prevX = X;
+        _prevY = Y;
 
-            if (!onSameColumn)
-            {
-                if (!onSameRow) // different column, different row, move diagonally
-                {
-                    if (_x < _head.X)
-                        ++_x;
-                    else
-                        --_x;
+        var onSameColumn = _x == _head.X;
+        var onSameRow = _y == _head.Y;
 
-                    if (_y < _head.Y)
-                        ++_y;
-                    else
-                        --_y;
-                } else { // different column, same row so we move left or right to get adjacent
-                    if (_x < _head.X)
-                        ++_x;
-                    else
-                        --_x;
-                }
-            }
-            else { // on the same column. different row so we move up or down to get adjacent
-                if (_y < _head.Y)
-                    ++_y;
-                else
-                    --_y;
-            }
+        if (!onSameRow)
+            MoveVerticallyTowardsHead();
 
+        if (!onSameColumn)
+            MoveLaterallyTowardsHead();
 
-            VisitedPoints.Add($"{X}, {Y}");
-        }
+        VisitedPoints.Add($"{X}, {Y}");
+    }
+
+    private void MoveVerticallyTowardsHead()
+    {
+        if (_y < _head.Y)
+            ++_y;
+        else
+            --_y;
+    }
+
+    private void MoveLaterallyTowardsHead()
+    {
+        if (_x < _head.X)
+            ++_x;
+        else
+            --_x;
     }
 }
+
 
 record struct Direction() 
 {
