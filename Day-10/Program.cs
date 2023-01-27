@@ -36,12 +36,23 @@ int CalculateSumOfSignalStrengths(string[] inputInstructions, int numberOfSignal
         var instruction = ParseInputInstruction(inputInstruction);
 
         foreach(var cycle in Enumerable.Range(0, instruction.CycleLength)) 
-        {
+        {   
+            var crtPosition = totalCycles % 40;
+            if (Enumerable.Range(register - 1, 3).Contains(crtPosition))
+                Console.Write("#");
+            else
+                Console.Write(".");
+
             totalCycles++;
+
+            if (totalCycles % 40 == 0)
+                Console.WriteLine();
+
             cycles.Add(totalCycles, register);
         }
         register += instruction.Value;
     }
+    Console.WriteLine();
 
     var sum = 0;
 
