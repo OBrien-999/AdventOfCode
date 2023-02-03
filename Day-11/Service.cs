@@ -16,7 +16,30 @@ public class Service
     {
         var monkeys = GenerateMonkeyDictFromInputFile();
 
-        return 0;
+        // process worry levels more optimally than original 
+        for (int i = 0; i < numberOfRounds; i++)
+        {
+            foreach (var entry in monkeys)
+            {
+                var monkey = entry.Value;
+
+                while (monkey.HasWorryLevelsToProcess())
+                {
+                    var (worryLevel, recipientIndex) = monkey.ProcessWorryLevel();
+
+                    var recipientMonkey = monkeys[recipientIndex];
+                    recipientMonkey.AddWorryLevel(worryLevel);
+                }
+            }
+        }
+
+        var result = monkeys
+            .Select(x => x.Value.GetInspectedItemCount())
+            .OrderByDescending(x => x)
+            .Take(2)
+            .Aggregate((x, y) => x * y);
+
+        return result;
     }
 
     public Dictionary<int, Monkey> GenerateMonkeyDictFromInputFile()
@@ -46,8 +69,8 @@ public class Service
         return monkeys;
     }
 
-    public List<int> ParseStartingItems(string itemInput)
+    public List<long> ParseStartingItems(string itemInput)
     {
-        return itemInput.Split(", ").Select(int.Parse).ToList();
+        return itemInput.Split(", ").Select(Int64.Parse).ToList();
     }
 }

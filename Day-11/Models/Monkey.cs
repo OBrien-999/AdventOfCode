@@ -6,13 +6,15 @@ public class Monkey
 {
     public const int ReliefFactor = 3;
 
-    public readonly List<int> Items;
+    public readonly List<long> Items;
     public readonly string Operation;
     public readonly int TestDivisor;
     public readonly int TestPassRecipient;
     public readonly int TestFailRecipient;
 
-    public Monkey(List<int> items, string operation, int testDivisor, int testPassRecipient, int testFailRecipient)
+    private int InspectedItemCount = 0;
+
+    public Monkey(List<long> items, string operation, int testDivisor, int testPassRecipient, int testFailRecipient)
     {
         Items = items;
         Operation = operation;
@@ -21,11 +23,39 @@ public class Monkey
         TestFailRecipient = testFailRecipient;
     }
 
-    // Operation: calculate worry level
-    // divide by three and rounded down to the nearest integer  (relief factor)
-    // Test
-        // throw
+    /// <summary>
+    /// Returns the worry level of the first item in the list.
+    /// </summary>
+    public (long, int) ProcessWorryLevel()
+    {
+        long worryLevel = Items[0];
+        Items.RemoveAt(0);
 
-    // Entity expr = "2 / 5 + 6";
-    // Console.WriteLine((double)expr.EvalNumerical());
+        var expr = (Entity)Operation.Replace("old", worryLevel.ToString());
+        worryLevel = (long)expr.EvalNumerical();
+        worryLevel /= ReliefFactor;
+
+        var recipient = worryLevel % TestDivisor == 0
+            ? TestPassRecipient
+            : TestFailRecipient;
+
+        InspectedItemCount++;
+
+        return (worryLevel, recipient);
+    }
+
+    public void AddWorryLevel(long worryLevel)
+    {
+        Items.Add(worryLevel);
+    }
+
+    public bool HasWorryLevelsToProcess()
+    {
+        return Items.Any();
+    }
+
+    public int GetInspectedItemCount()
+    {
+        return InspectedItemCount;
+    }
 }
