@@ -26,14 +26,15 @@ public class Monkey
     /// <summary>
     /// Returns the worry level of the first item in the list.
     /// </summary>
-    public (long, int) ProcessWorryLevel()
+    public (long, int) ProcessWorryLevel(int commonDivisor = 0, bool useReliefFactor = true)
     {
         long worryLevel = Items[0];
         Items.RemoveAt(0);
 
         var expr = (Entity)Operation.Replace("old", worryLevel.ToString());
         worryLevel = (long)expr.EvalNumerical();
-        worryLevel /= ReliefFactor;
+        if (useReliefFactor)
+            worryLevel /= ReliefFactor;
 
         var recipient = worryLevel % TestDivisor == 0
             ? TestPassRecipient
@@ -41,7 +42,9 @@ public class Monkey
 
         InspectedItemCount++;
 
-        return (worryLevel, recipient);
+        return useReliefFactor
+            ? (worryLevel, recipient)
+            : (worryLevel  % commonDivisor, recipient);
     }
 
     public void AddWorryLevel(long worryLevel)

@@ -5,6 +5,8 @@ namespace Day_11;
 
 public class Service
 {
+    private const int ReliefFactorThreshold = 20;
+
     private readonly string _inputFile;
 
     public Service(string inputFile)
@@ -12,9 +14,10 @@ public class Service
         _inputFile = inputFile;
     }
 
-    public int CalculateLevelOfMonkeyBusiness(int numberOfRounds)
+    public ulong CalculateLevelOfMonkeyBusiness(int numberOfRounds)
     {
         var monkeys = GenerateMonkeyDictFromInputFile();
+        var testDivisorProduct = monkeys.Select(x => x.Value.TestDivisor).Aggregate((x, y) => x * y);
 
         // process worry levels more optimally than original 
         for (int i = 0; i < numberOfRounds; i++)
@@ -25,7 +28,9 @@ public class Service
 
                 while (monkey.HasWorryLevelsToProcess())
                 {
-                    var (worryLevel, recipientIndex) = monkey.ProcessWorryLevel();
+                    var (worryLevel, recipientIndex) = numberOfRounds <= ReliefFactorThreshold
+                        ? monkey.ProcessWorryLevel()
+                        : monkey.ProcessWorryLevel(testDivisorProduct, useReliefFactor: false);
 
                     var recipientMonkey = monkeys[recipientIndex];
                     recipientMonkey.AddWorryLevel(worryLevel);
@@ -34,7 +39,7 @@ public class Service
         }
 
         var result = monkeys
-            .Select(x => x.Value.GetInspectedItemCount())
+            .Select(x => (ulong)x.Value.GetInspectedItemCount())
             .OrderByDescending(x => x)
             .Take(2)
             .Aggregate((x, y) => x * y);
