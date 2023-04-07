@@ -1,7 +1,5 @@
 ﻿using QuikGraph;
-using QuikGraph.Algorithms.Search;
-using QuikGraph.Algorithms.ShortestPath;
-using System.Collections.Generic;
+using QuikGraph.Algorithms;
 
 namespace Day_12
 {
@@ -9,116 +7,93 @@ namespace Day_12
     {
         public int GetShortestPath()
         {
-
-
-
-            // Input heightmap
-            string[] input = {
-            "Sabqponm",
-            "abcryxxl",
-            "accszExk",
-            "acctuvwj",
-            "abdefghi"
-        };
-
-            int rows = input.Length;
-            int cols = input[0].Length;
-
-            (int, int) start = (-1, -1);
-            (int, int) end = (-1, -1);
-
-            // Find start and end positions
-            for (int i = 0; i < rows; i++)
+            // Parse the height map into a 2D array of characters
+            var heightMap = new[,]
             {
-                for (int j = 0; j < cols; j++)
-                {
-                    char currentChar = input[i][j];
-                    if (currentChar == 'S') start = (i, j);
-                    if (currentChar == 'E') end = (i, j);
-                }
-            }
+                {'S', 'a', 'b', 'q', 'p', 'o', 'n', 'm'},
+                {'a', 'b', 'c', 'r', 'y', 'x', 'x', 'l'},
+                {'a', 'c', 'c', 's', 'z', 'E', 'x', 'k'},
+                {'a', 'c', 'c', 't', 'u', 'v', 'w', 'j'},
+                {'a', 'b', 'd', 'e', 'f', 'g', 'h', 'i'}
+            };
 
-            // Dijkstra's algorithm to find the shortest path
-            var distances = new Dictionary<(int, int), double>();
-            var visited = new HashSet<(int, int)>();
+            // Initialize an empty dictionary that will represent the graph
+            var dictionary = new Dictionary<int, int[]>();
 
-            for (int i = 0; i < rows; i++)
+            // Iterate over each cell in the height map
+            var root = -1;
+            var target = -1;
+            for (var i = 0; i < heightMap.GetLength(0); i++)
             {
-                for (int j = 0; j < cols; j++)
+                for (var j = 0; j < heightMap.GetLength(1); j++)
                 {
-                    distances[(i, j)] = double.PositiveInfinity;
-                }
-            }
+                    var c = heightMap[i, j];
+                    var elevation = c - 'a';
+                    var vertex = i * heightMap.GetLength(1) + j;
 
-            distances[start] = 0;
+                    // Add the current cell to the dictionary as a vertex with the appropriate elevation level
+                    dictionary[vertex] = Array.Empty<int>();
 
-            while (visited.Count < rows * cols)
-            {
-                (int, int) minVertex = FindMinVertex(distances, visited);
-                if (minVertex == end) break;
+                    // Add the adjacent vertices to the dictionary with the appropriate elevation levels based on the given restrictions
+                    var adjVertices = new List<int>();
 
-                visited.Add(minVertex);
-
-                var adjacentCells = new List<(int, int)> { (minVertex.Item1 - 1, minVertex.Item2), (minVertex.Item1 + 1, minVertex.Item2), (minVertex.Item1, minVertex.Item2 - 1), (minVertex.Item1, minVertex.Item2 + 1) };
-                foreach (var cell in adjacentCells)
-                {
-                    if (IsValidCell(cell, rows, cols) && !visited.Contains(cell))
+                    if (c == 'S' || c == 'E')
                     {
-                        char currentChar = input[minVertex.Item1][minVertex.Item2];
-                        char adjacentChar = input[cell.Item1][cell.Item2];
-                        if (Math.Abs(currentChar - adjacentChar) <= 1 || adjacentChar == 'E')
-                        {
-                            double newDistance = distances[minVertex] + 1;
-                            if (newDistance < distances[cell])
-                            {
-                                distances[cell] = newDistance;
-                            }
-                        }
+                        elevation = c == 'S' ? 0 : 25;
+                    }
+
+                    if (i > 0 && Math.Abs((heightMap[i - 1, j] == 'S' ? 0 : (heightMap[i - 1, j] == 'E' ? 25 : heightMap[i - 1, j] - 'a')) - elevation) <= 1)
+                    {
+                        adjVertices.Add(vertex - heightMap.GetLength(1));
+                    }
+
+                    if (i < heightMap.GetLength(0) - 1 && Math.Abs((heightMap[i + 1, j] == 'S' ? 0 : (heightMap[i + 1, j] == 'E' ? 25 : heightMap[i + 1, j] - 'a')) - elevation) <= 1)
+                    {
+                        adjVertices.Add(vertex + heightMap.GetLength(1));
+                    }
+
+                    if (j > 0 && Math.Abs((heightMap[i, j - 1] == 'S' ? 0 : (heightMap[i, j - 1] == 'E' ? 25 : heightMap[i, j - 1] - 'a')) - elevation) <= 1)
+                    {
+                        adjVertices.Add(vertex - 1);
+                    }
+
+                    if (j < heightMap.GetLength(1) - 1 && Math.Abs((heightMap[i, j + 1] == 'S' ? 0 : (heightMap[i, j + 1] == 'E' ? 25 : heightMap[i, j + 1] - 'a')) - elevation) <= 1)
+                    {
+                        adjVertices.Add(vertex + 1);
+                    }
+
+                    dictionary[vertex] = adjVertices.ToArray();
+
+                    if (c == 'S')
+                    {
+                        root = vertex;
+                    }
+                    else if (c == 'E')
+                    {
+                        target = vertex;
                     }
                 }
             }
 
-            // Calculate the fewest steps required
-            if (distances[end] != double.PositiveInfinity)
-            {
-                Console.WriteLine($"The fewest steps required: {distances[end]}");
-                return (int)distances[end];
-            }
-            else
-            {
-                Console.WriteLine("No path found.");
-            }
-            return -1;
-            
-        }
+            var graph = dictionary.ToDelegateVertexAndEdgeListGraph(
+                kv => Array.ConvertAll(kv.Value, v => new Edge<int>(kv.Key, v)));
 
-        // Finds the vertex with the minimum distance that hasn't been visited
-        static (int, int) FindMinVertex(Dictionary<(int, int), double> distances, HashSet<(int, int)> visited)
-        {
-            double minValue = double.PositiveInfinity;
-            (int, int) minVertex = (-1, -1);
+            // Find the shortest path
+            var tryGetPath = graph.ShortestPathsDijkstra(e => 1, root);
 
-            foreach (var item in distances)
+            if (tryGetPath(target, out IEnumerable<Edge<int>> path))
             {
-                if (!visited.Contains(item.Key) && item.Value < minValue)
-                {
-                    minValue = item.Value;
-                    minVertex = item.Key;
-                }
+                var minSteps = path.Count();
+
+                Console.WriteLine($"The shortest path has {minSteps}");
+
+                return minSteps;
             }
 
-            return minVertex;
-        }
-
-        // Checks if a cell is valid (inside the grid)
-        static bool IsValidCell((int, int) cell, int rows, int cols)
-                {
-            return cell.Item1 >= 0 && cell.Item1 < rows && cell.Item2 >= 0 && cell.Item2 < cols;
+            return 0;
         }
     }
-    
 }
 
 
 
-  
