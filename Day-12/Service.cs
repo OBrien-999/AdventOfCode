@@ -5,17 +5,9 @@ namespace Day_12
 {
     public class Service
     {
-        public int GetShortestPath()
+        public int GetShortestPath(string inputFile)
         {
-            // Parse the height map into a 2D array of characters
-            var heightMap = new[,]
-            {
-                {'S', 'a', 'b', 'q', 'p', 'o', 'n', 'm'},
-                {'a', 'b', 'c', 'r', 'y', 'x', 'x', 'l'},
-                {'a', 'c', 'c', 's', 'z', 'E', 'x', 'k'},
-                {'a', 'c', 'c', 't', 'u', 'v', 'w', 'j'},
-                {'a', 'b', 'd', 'e', 'f', 'g', 'h', 'i'}
-            };
+            var heightMap = GetHeightMapFromInput(inputFile);
 
             // Initialize an empty dictionary that will represent the graph
             var dictionary = new Dictionary<int, int[]>();
@@ -81,7 +73,7 @@ namespace Day_12
             // Find the shortest path
             var tryGetPath = graph.ShortestPathsDijkstra(e => 1, root);
 
-            if (tryGetPath(target, out IEnumerable<Edge<int>> path))
+            if (tryGetPath(target, out var path))
             {
                 var minSteps = path.Count();
 
@@ -92,6 +84,49 @@ namespace Day_12
 
             return 0;
         }
+
+        private static char[,] GetHeightMapFromInput(string inputFile)
+        {
+            // Read the file contents into a string array
+            var lines = File.ReadAllLines(inputFile);
+
+            // Determine the dimensions of the 2D char array
+            var numRows = lines.Length;
+            var numCols = lines[0].Length;
+
+            // Create the 2D char array
+            var charArray = new char[numRows, numCols];
+
+            // Populate the char array with the file contents
+            for (var i = 0; i < numRows; i++)
+            {
+                var line = lines[i];
+                for (var j = 0; j < numCols; j++)
+                {
+                    if (j >= line.Length)
+                    {
+                        // If the line is shorter than the expected number of columns,
+                        // fill in the remaining cells with a space character
+                        charArray[i, j] = ' ';
+                    }
+                    else
+                    {
+                        charArray[i, j] = line[j];
+                    }
+                }
+            }
+
+
+            return charArray;
+        }
+
+        //1. Read in the input one character at a time.
+        //    For each input record the ID, Coordinates, AsciiValue. Dictionary<tuple<int, int>, record: ID, asciiValue>
+        //Keep track of the root and target nodes S/E.
+        //    Track Max X and Max Y being the 
+        //2. Second pass to create vertex and adjacent node dictionary.evaluate coordinates and ascii value
+        //3. Convert to graph with the library extension method.
+        //4. Call method to solve the problem celebrate with hoots and howls.
     }
 }
 

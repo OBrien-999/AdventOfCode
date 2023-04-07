@@ -12,4 +12,13 @@
     <PackageReference Include="QuikGraph" Version="2.5.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="sample-input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

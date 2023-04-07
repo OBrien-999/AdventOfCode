@@ -16,7 +16,7 @@ namespace Day12.Tests
             var service = new Service();
 
             //Act
-            var result = service.GetShortestPath();
+            var result = service.GetShortestPath("sample-input.txt");
 
             //Assert
             Assert.That(result, Is.EqualTo(31));
